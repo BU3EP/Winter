@@ -14,14 +14,17 @@ connectDB();
 
 // Import Routes
 const userRoutes = require("./routes/userRoutes");
-// const productRoutes = require("./routes/productRoutes");
+const productRoutes = require("./routes/productRoutes");
 // const orderRoutes = require("./routes/orderRoutes");
 
 // Use Routes
 app.use("/api/users", userRoutes);
-// app.use("/api/products", productRoutes);
+app.use("/api/products", productRoutes);
 // app.use("/api/orders", orderRoutes);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
+  
+module.exports = app;
 

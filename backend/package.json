@@ -19,7 +19,8 @@
   "type": "commonjs",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node backend/start.js",
+    "test": "NODE_ENV=test jest --detectOpenHandles --forceExit"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -28,5 +29,10 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.10.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4",
+    "supertest": "^7.0.0"
   }
 }

@@ -1,0 +1,32 @@
+{
+  "name": "e-commerce-marketplace-backend",
+  "version": "1.0.0",
+  "description": "Backend code for e-commerce marketplace",
+  "keywords": [
+    "express",
+    "passport"
+  ],
+  "homepage": "https://github.com/SRai22/web-602-project-2#readme",
+  "bugs": {
+    "url": "https://github.com/SRai22/web-602-project-2/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SRai22/web-602-project-2.git"
+  },
+  "license": "MIT",
+  "author": "Shravan S Rai",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.1"
+  }
+}

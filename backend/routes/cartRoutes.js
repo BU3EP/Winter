@@ -10,7 +10,6 @@ const protect = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// 🛒 Protected routes (require authentication)
 router.get("/", protect, getUserCart);
 router.post("/add", protect, addToCart);
 router.put("/update/:id", protect, updateCartQuantity);

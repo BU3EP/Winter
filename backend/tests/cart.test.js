@@ -10,11 +10,21 @@ let userToken, userId, productId;
 
 beforeAll(async () => {
   await connectTestDB();
-  
+
   // Create a user (buyer)
-  const user = await User.create({ name: "John Doe", email: "john@example.com", password: "123456", role: "buyer" });
+  const user = await User.create({ 
+    name: "John Doe", 
+    email: "john@example.com", 
+    password: "123456", 
+    role: "buyer" 
+  });
+
   userId = user._id;
-  userToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "30d" });
+  userToken = jwt.sign(
+    { id: user._id, role: user.role }, 
+    process.env.JWT_SECRET, 
+    { expiresIn: "30d" }
+  );
 
   // Create a test product
   const product = await Product.create({
@@ -29,8 +39,35 @@ beforeAll(async () => {
   productId = product._id;
 });
 
-afterEach(async () => {
-  await clearTestDB();
+beforeEach(async () => {
+  await clearTestDB(); // Ensure a fresh DB state
+
+  // Recreate user and generate JWT
+  const user = await User.create({
+    name: "John Doe",
+    email: "john@example.com",
+    password: "123456",
+    role: "buyer",
+  });
+
+  userId = user._id;
+  userToken = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "30d" }
+  );
+
+  // Recreate product
+  const product = await Product.create({
+    name: "Laptop",
+    description: "Gaming Laptop",
+    price: 1500,
+    stock: 10,
+    category: "Electronics",
+    seller: userId,
+  });
+
+  productId = product._id;
 });
 
 afterAll(async () => {
@@ -38,7 +75,7 @@ afterAll(async () => {
 });
 
 describe("🛒 Shopping Cart API Tests", () => {
-
+  
   test("Should add a product to cart", async () => {
     const res = await request(app)
       .post("/api/cart/add")
@@ -46,8 +83,8 @@ describe("🛒 Shopping Cart API Tests", () => {
       .send({ productId, quantity: 2 });
 
     expect(res.status).toBe(200);
-    expect(res.body.items.length).toBe(1);
-    expect(res.body.items[0].product).toBe(productId.toString());
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0].product.toString()).toBe(productId.toString());
     expect(res.body.items[0].quantity).toBe(2);
   });
 
@@ -58,16 +95,24 @@ describe("🛒 Shopping Cart API Tests", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.items).toEqual([]);
+    expect(res.body.message).toBe("Cart is empty");
   });
 
   test("Should retrieve a cart with added items", async () => {
+    await request(app)
+      .post("/api/cart/add")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ productId, quantity: 3 });
+
     const res = await request(app)
-        .get("/api/cart")
-        .set("Authorization", `Bearer ${userToken}`);
+      .get("/api/cart")
+      .set("Authorization", `Bearer ${userToken}`);
 
     expect(res.status).toBe(200);
-    expect(Array.isArray(res.body.items)).toBe(true); 
-    });
+    expect(res.body.items).toHaveLength(1);
+    expect(res.body.items[0].product._id.toString()).toBe(productId.toString());
+  expect(res.body.items[0].quantity).toBe(3);
+  });
 
   test("Should update product quantity in cart", async () => {
     await request(app)
@@ -84,59 +129,27 @@ describe("🛒 Shopping Cart API Tests", () => {
     expect(res.body.items[0].quantity).toBe(5);
   });
 
-  // test("Should remove an item from cart", async () => {
-  //   await request(app)
-  //     .post("/api/cart/add")
-  //     .set("Authorization", `Bearer ${userToken}`)
-  //     .send({ productId, quantity: 1 });
-
-  //   const res = await request(app)
-  //     .delete(`/api/cart/remove/${productId}`)
-  //     .set("Authorization", `Bearer ${userToken}`);
-
-  //   expect(res.status).toBe(200);
-  //   expect(res.body.message).toBe("Item removed successfully");
-
-  //   const cartCheck = await request(app)
-  //     .get("/api/cart")
-  //     .set("Authorization", `Bearer ${userToken}`);
-
-  //   expect(cartCheck.body.items.length).toBe(0);
-  // });
   test("Should remove an item from cart", async () => {
-    // First create a cart with an item
-    const addResponse = await request(app)
+    // Add product first
+    await request(app)
       .post("/api/cart/add")
       .set("Authorization", `Bearer ${userToken}`)
       .send({ productId, quantity: 1 });
-    
-    // Verify the item was added successfully
-    expect(addResponse.status).toBe(200);
-    expect(addResponse.body.items.length).toBe(1);
 
-    // Verify cart exists in database
-    const cartInDb = await Cart.findOne({ user: userId });
-    expect(cartInDb).toBeTruthy();
-    expect(cartInDb.items.length).toBe(1);
-
-    // Then try to remove the item
-    const removeResponse = await request(app)
+    // Remove the product
+    const removeRes = await request(app)
       .delete(`/api/cart/remove/${productId}`)
       .set("Authorization", `Bearer ${userToken}`);
 
-    if (removeResponse.status !== 200) {
-      console.log('Remove Response:', removeResponse.body); // For debugging
-    }
+    expect(removeRes.status).toBe(200);
+    expect(removeRes.body.message).toBe("Item removed successfully");
 
-    expect(removeResponse.status).toBe(200);
-    expect(removeResponse.body.message).toBe("Item removed successfully");
-
-    // Verify the cart is empty
+    // Ensure cart is empty
     const cartCheck = await request(app)
       .get("/api/cart")
       .set("Authorization", `Bearer ${userToken}`);
 
-    expect(cartCheck.body.items.length).toBe(0);
+    expect(cartCheck.body.items).toHaveLength(0);
   });
 
   test("Should return 404 if removing an item that is not in cart", async () => {
@@ -175,7 +188,32 @@ describe("🛒 Shopping Cart API Tests", () => {
       .get("/api/cart")
       .set("Authorization", `Bearer ${userToken}`);
 
-    expect(cartCheck.body.items.length).toBe(0);
+    expect(cartCheck.body.items).toHaveLength(0);
+  });
+
+  test("Should not add a product with invalid quantity", async () => {
+    const res = await request(app)
+      .post("/api/cart/add")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ productId, quantity: 0 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe("Invalid input parameters");
+  });
+
+  test("Should not update product quantity with invalid number", async () => {
+    await request(app)
+      .post("/api/cart/add")
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ productId, quantity: 2 });
+
+    const res = await request(app)
+      .put(`/api/cart/update/${productId}`)
+      .set("Authorization", `Bearer ${userToken}`)
+      .send({ quantity: -5 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe("Quantity must be at least 1");
   });
 
 });

@@ -1,16 +1,16 @@
-const express = require('express');
+const express = require("express");
 const {
-    addToCart,
-    removeFromCart,
-    getUserCart,
-    updateCartQuantity,
-    clearCart,
-  } = require("../controllers/cartController");
+  addToCart,
+  removeFromCart,
+  getUserCart,
+  updateCartQuantity,
+  clearCart,
+} = require("../controllers/cartController");
 const protect = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-// Protected routes (require authentication)
+// 🛒 Protected routes (require authentication)
 router.get("/", protect, getUserCart);
 router.post("/add", protect, addToCart);
 router.put("/update/:id", protect, updateCartQuantity);

@@ -3,7 +3,7 @@ const { createOrder,
         getOrders, 
         getOrderById, 
         cancelOrder } = require('../controllers/orderController');
-const protect = require('../middleware/authMiddleware');
+const {protect} = require('../middleware/authMiddleware');
 
 const router = express.Router();
 

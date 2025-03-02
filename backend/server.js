@@ -27,6 +27,7 @@ app.use(xss());
 app.use(mongoSanitize());
 app.use(morgan("combined"));
 app.use(cookieParser());
+app.use("/uploads", express.static("public/uploads"));
 
 // // Session Middleware
 // app.use(

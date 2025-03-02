@@ -71,6 +71,14 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+const uploadImage = async (req, res) => {
+  const { name, description, price, sellerId, imageUrl } = req.body;
+  const product = new Product({ name, description, price, sellerId, imageUrl });
+
+  await product.save();
+  res.json(product);
+}
+
 module.exports = {
   createProduct,
   getAllProducts,

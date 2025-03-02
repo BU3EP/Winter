@@ -10,7 +10,8 @@ const winston = require("winston");
 const connectDB = require("./config/db");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
-const MongoStore = require("connect-mongo")
+const MongoStore = require("connect-mongo");
+const PORT = process.env.PORT || 5000;
 
 dotenv.config(); // Load environment variables
 // Connect to database

@@ -1,7 +1,12 @@
 <template>
   <nav class="navbar">
-    <div class="logo">LOGO</div>
+    <div class="logo-container">
+      <img src="/wu-logo.png" alt="Marketplace Logo" class="logo" />
+      <span class="brand-name">E-Market</span>
+    </div>
+    
     <button class="menu-toggle" @click="toggleMobileMenu">☰</button>
+
     <div :class="['nav-links', { 'mobile-open': mobileMenuOpen }]">
       <router-link to="/">Home</router-link>
       <router-link to="/products">Categories</router-link>
@@ -9,7 +14,7 @@
       <router-link v-if="!user" to="/login">Login</router-link>
       <router-link v-if="user && user.role === 'seller'" to="/seller">Seller Dashboard</router-link>
       <router-link v-if="user && user.role === 'admin'" to="/admin">Admin Panel</router-link>
-      
+
       <div v-if="user" class="user-menu">
         <img v-if="user.avatar" :src="user.avatar" alt="User Avatar" class="avatar" />
         <span v-else @click="toggleMenu">{{ user.name }}</span>
@@ -28,7 +33,6 @@ import { useCartStore } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
 
-const searchQuery = ref('');
 const menuOpen = ref(false);
 const mobileMenuOpen = ref(false);
 const cartStore = useCartStore();
@@ -37,12 +41,6 @@ const router = useRouter();
 
 const cartCount = computed(() => cartStore.totalItems);
 const user = computed(() => authStore.user);
-
-const search = () => {
-  if (searchQuery.value) {
-    router.push(`/search?q=${searchQuery.value}`);
-  }
-};
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value;
@@ -64,8 +62,26 @@ const logout = () => {
   justify-content: space-between;
   align-items: center;
   padding: 15px 20px;
-  background: #ddd;
+  background: linear-gradient(90deg, #6f5fff, #7b93fe);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
 }
 
 .menu-toggle {
@@ -73,6 +89,7 @@ const logout = () => {
   background: none;
   border: none;
   font-size: 24px;
+  color: white;
   cursor: pointer;
 }
 
@@ -81,14 +98,17 @@ const logout = () => {
   gap: 15px;
 }
 
-.nav-links.mobile-open {
-  display: block;
-  position: absolute;
-  top: 50px;
-  left: 0;
-  background: white;
-  width: 100%;
-  text-align: center;
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  padding: 8px 12px;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.nav-links a:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .user-menu {
@@ -99,8 +119,8 @@ const logout = () => {
 .user-menu ul {
   position: absolute;
   background: white;
+  border-radius: 5px;
   border: 1px solid #ccc;
-  list-style: none;
   padding: 5px;
   display: none;
 }
@@ -118,10 +138,20 @@ const logout = () => {
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;
+    color: white;
   }
   .nav-links {
     display: none;
     flex-direction: column;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    background: white;
+    width: 100%;
+    text-align: center;
+  }
+  .nav-links.mobile-open {
+    display: flex;
   }
 }
 </style>

@@ -33,6 +33,7 @@
   const navigateToShop = () => {
     router.push('/products');
   };
+
   </script>
   
   <style scoped>
@@ -48,6 +49,10 @@
   .hero button {
     padding: 10px 20px;
     font-size: 18px;
+  }
+
+  .hero button:hover {
+    background: #6182dd;
   }
   
   .categories {

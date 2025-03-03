@@ -27,6 +27,11 @@
         </div>
       </section>
     </div>
+
+    <div v-if="showLoginMessage" class="login-message">
+      <p>You must <router-link to="/login">Login</router-link> to add items to the cart.</p>
+    </div>
+
     <div class="pagination">
       <button @click="prevPage" :disabled="page === 1">&laquo; Prev</button>
       <span>Page {{ page }}</span>
@@ -40,10 +45,12 @@
 import api from '@/services/apiService';
 import Navbar from '@/components/Navbar.vue';
 import Footer from '@/components/Footer.vue';
-import { ref, onMounted } from 'vue';
+import { useCartStore } from "@/stores/cartStore";
+import { useAuthStore } from "@/stores/authStore";
+import { ref, computed, onMounted } from 'vue';
 
 export default {
-  components: { Navbar, Footer },
+  components: { Navbar, Footer},
   setup() {
     const products = ref([]);
     const categories = ref(["Laptops", "Desktops", "Smartphones", "Tablets"]);
@@ -51,6 +58,12 @@ export default {
     const priceRange = ref(2000);
     const sortBy = ref("price-asc");
     const page = ref(1);
+
+    const cartStore = useCartStore();
+    const authStore = useAuthStore();
+    const showLoginMessage = ref(false);
+
+    const user = computed(() => authStore.user);
 
     const fetchProducts = async () => {
       try {
@@ -62,7 +75,6 @@ export default {
             page: page.value 
           }
         });
-        console.log(response.data)
         products.value = response.data;
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -78,17 +90,13 @@ export default {
       return url;
     };
 
-    const addToCart = async (product) => {
-      try {
-        const token = localStorage.getItem('token');
-        await api.post('/cart/add', 
-          { productId: product.id, quantity: 1 },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        alert('Added to cart!');
-      } catch (error) {
-        console.error('Error adding to cart:', error);
+    const addToCart = (product) => {
+      if (!user.value) {
+        showLoginMessage.value = true;
+        setTimeout(() => (showLoginMessage.value = false), 3000);
+        return;
       }
+      cartStore.addToCart(product);
     };
 
     const nextPage = () => {
@@ -104,7 +112,18 @@ export default {
 
     onMounted(fetchProducts);
 
-    return { products, categories, selectedCategory, priceRange, sortBy, page, fetchProducts, addToCart, nextPage, prevPage, getImageUrl };
+    return { products, 
+            categories, 
+            selectedCategory, 
+            priceRange, 
+            sortBy, 
+            page, 
+            fetchProducts, 
+            addToCart, 
+            nextPage, 
+            prevPage, 
+            getImageUrl,
+            showLoginMessage };
   }
 };
 </script>
@@ -148,5 +167,11 @@ button {
   padding: 5px 10px;
   margin: 5px;
   cursor: pointer;
+}
+.login-message {
+  text-align: center;
+  margin: 20px;
+  color: red;
+  font-weight: bold;
 }
 </style>

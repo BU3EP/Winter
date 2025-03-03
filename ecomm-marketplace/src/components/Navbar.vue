@@ -19,7 +19,7 @@
         <img v-if="user.avatar" :src="user.avatar" alt="User Avatar" class="avatar" />
         <span v-else @click="toggleMenu">{{ user.name }}</span>
         <ul v-show="menuOpen">
-          <li><router-link to="/profile">Profile</router-link></li>
+          <li><router-link to="/account">Profile</router-link></li>
           <li @click="logout">Logout</li>
         </ul>
       </div>

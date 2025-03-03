@@ -8,8 +8,8 @@
           <option value="">All</option>
           <option v-for="category in categories" :key="category" :value="category">{{ category }}</option>
         </select>
-        <label>Price Range:</label>
-        <input type="range" v-model="priceRange" min="0" max="2000" @change="fetchProducts">
+        <label>Price Range: ${{ priceRange }}</label>
+        <input type="range" v-model="priceRange" min="0" max="2000" step="50" @input="fetchProducts">
         <label>Sort By:</label>
         <select v-model="sortBy" @change="fetchProducts">
           <option value="price-asc">Price: Low to High</option>
@@ -17,7 +17,7 @@
         </select>
       </aside>
       <section class="products">
-        <div v-for="product in products" :key="product.id" class="product">
+        <div v-for="product in filteredProducts" :key="product.id" class="product">
           <img :src=getImageUrl(product.image) :alt="product.name" class="product-image"/>
           <p><strong>{{ product.name }}</strong></p>
           <p>
@@ -53,9 +53,9 @@ export default {
   components: { Navbar, Footer},
   setup() {
     const products = ref([]);
-    const categories = ref(["Laptops", "Desktops", "Smartphones", "Tablets"]);
+    const categories = ref(["laptop", "desktop", "smartphone", "tablet"]);
     const selectedCategory = ref("");
-    const priceRange = ref(2000);
+    const priceRange = ref(3000);
     const sortBy = ref("price-asc");
     const page = ref(1);
 
@@ -69,7 +69,7 @@ export default {
       try {
         const response = await api.get('/products', {
           params: { 
-            category: selectedCategory.value, // ✅ Use the reactive variable
+            category: selectedCategory.value || null, 
             price_max: priceRange.value, 
             sort: sortBy.value, 
             page: page.value 
@@ -81,13 +81,25 @@ export default {
       }
     };
 
+    const filteredProducts = computed(() => {
+      let filtered = products.value;
+      if (selectedCategory.value) {
+        filtered = filtered.filter(product => product.category === selectedCategory.value);
+      }
+      filtered = filtered.filter(product => product.price <= priceRange.value);
+      
+      if (sortBy.value === "price-asc") {
+        filtered.sort((a, b) => a.price - b.price);
+      } else if (sortBy.value === "price-desc") {
+        filtered.sort((a, b) => b.price - a.price);
+      }
+      return filtered;
+    });
+
     const getImageUrl = (imagePath) => {
       if (!imagePath) return "https://via.placeholder.com/150"; // Default image
       if (imagePath.startsWith("http")) return imagePath; // Full URL case
-      console.log(`Image path received: ${imagePath}`)
-      const url = `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}/${imagePath.replace(/^\//, '')}`;
-      console.log(url);
-      return url;
+      return `${import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '')}/${imagePath.replace(/^\//, '')}`;
     };
 
     const addToCart = (product) => {
@@ -123,7 +135,8 @@ export default {
             nextPage, 
             prevPage, 
             getImageUrl,
-            showLoginMessage };
+            showLoginMessage,
+            filteredProducts };
   }
 };
 </script>
@@ -141,7 +154,7 @@ export default {
 .products {
   flex-grow: 1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
   padding: 20px;
 }
@@ -173,5 +186,5 @@ button {
   margin: 20px;
   color: red;
   font-weight: bold;
-}
+} 
 </style>

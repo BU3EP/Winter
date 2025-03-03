@@ -21,13 +21,21 @@ connectDB();
 const app = express();
 app.use(express.json()); // Allow JSON payloads
 // app.use(cors()); // Enable CORS
-app.use(cors({ credentials: true, origin: process.env.FRONTEND_URL }));
-app.use(helmet());
+app.use(cors({ credentials: true, //origin:  }));
+    origin: process.env.FRONTEND_URL, // Allow all origins (for testing, restrict in production)
+    methods: "GET,POST,PUT,DELETE",
+    allowedHeaders: "Content-Type,Authorization"
+}));
+app.use(helmet(
+    {
+        crossOriginResourcePolicy: false,
+    }
+));
 app.use(xss());
 app.use(mongoSanitize());
 app.use(morgan("combined"));
 app.use(cookieParser());
-app.use("/uploads", express.static("public/uploads"));
+
 
 // // Session Middleware
 // app.use(
@@ -64,7 +72,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/auth", authRoutes);
-
+app.use("/api/uploads", express.static("public/uploads"));
 app.use((req, res) => {
     res.status(404).json({ message: "Route Not Found" });
 });

@@ -5,13 +5,16 @@ const ProductListing = () => import('@/views/ProductListing.vue');
 const Auth = () => import('@/views/AuthenticationPage.vue');
 const CartView = () => import('@/views/CartView.vue');
 const BuyerDashboard = () => import('@/views/BuyerDashboard.vue');
+const SellerDashboard = () => import('@/views/SellerDashboard.vue');
+
 
 const routes = [
   { path: '/', name: 'LandingPage', component: LandingPage },
   { path: '/products', name: 'ProductListing', component: ProductListing },
   { path: '/login', name: 'Auth', component: Auth},
   { path: '/cart', name: "CartView", component: CartView },
-  { path: '/account', name: 'BuyerDashboard', component: BuyerDashboard }
+  { path: '/account', name: 'BuyerDashboard', component: BuyerDashboard },
+  { path: '/seller-dashboard', name: 'SellerDashboard', component: SellerDashboard },
 ];
 
 const router = createRouter({

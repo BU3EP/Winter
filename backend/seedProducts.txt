@@ -1,0 +1,82 @@
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const Product = require("./models/Product");
+const User = require("./models/User");
+
+dotenv.config();
+
+// Connect to MongoDB
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.log("❌ MongoDB Connection Error:", err));
+
+const createSeller = async () => {
+  try {
+    // Check if seller already exists
+    let seller = await User.findOne({ email: "johndoe@example.com" });
+    if (seller) {
+      console.log("⚠️ Seller already exists:", seller);
+      return seller; // Return existing seller
+    }
+
+    // Create Seller
+    seller = new User({
+      name: "John Doe",
+      email: "johndoe@example.com",
+      password: "securepassword123",
+      role: "seller",
+      status: "approved", // Mark as approved so they can list products
+    });
+
+    await seller.save();
+    console.log("✅ Seller John Doe created successfully!");
+    return seller;
+  } catch (error) {
+    console.error("❌ Error creating seller:", error);
+    process.exit(1);
+  }
+};
+
+const seedProducts = async (seller) => {
+  try {
+    if (!seller) {
+      console.log("❌ No seller found. Exiting.");
+      process.exit(1);
+    }
+
+    const sellerId = seller._id;
+
+    // Define products
+    const products = [
+      { name: "Dell XPS 15", description: "High-performance ultrabook", price: 1800, stock: 10, category: "laptop", image: "/uploads/dell-xps.png", seller: sellerId },
+      { name: "MacBook Pro 16", description: "Apple M2 Pro laptop", price: 2500, stock: 8, category: "laptop", image: "/uploads/macbook16.jpeg", seller: sellerId },
+      { name: "HP Omen 30L", description: "Gaming PC", price: 2200, stock: 5, category: "desktop", image: "/uploads/hp-omen.jpg", seller: sellerId },
+      { name: "iPhone 16 Pro", description: "Apple flagship phone", price: 999, stock: 15, category: "smartphone", image: "/uploads/iphone14pro.jpg", seller: sellerId },
+      { name: "Samsung Galaxy S23 Ultra", description: "Samsung flagship phone", price: 1200, stock: 12, category: "smartphone", image: "/uploads/galaxys23.jpg", seller: sellerId },
+      { name: "Google Pixel 8 Pro", description: "Google flagship phone", price: 899, stock: 14, category: "smartphone", image: "/uploads/pixel8pro.jpg", seller: sellerId },
+      { name: "iPad Pro 12.9", description: "Apple tablet with M2 chip", price: 1300, stock: 10, category: "tablet", image: "/uploads/iPadpro.jpg", seller: sellerId },
+      { name: "Samsung Galaxy Tab S8 Ultra", description: "Samsung's premium tablet", price: 1100, stock: 9, category: "tablet", image: "/uploads/galaxy-s8.jpg", seller: sellerId }
+    ];
+
+    // Insert products into the database
+    await Product.insertMany(products);
+
+    console.log("✅ Products added successfully!");
+    process.exit();
+  } catch (error) {
+    console.error("❌ Error seeding products:", error);
+    process.exit(1);
+  }
+};
+
+// Execute in correct order
+const runSeeder = async () => {
+  const seller = await createSeller(); // Wait for seller creation
+  await seedProducts(seller); // Seed products with that seller
+};
+
+runSeeder();

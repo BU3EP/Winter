@@ -6,20 +6,48 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
     token: null,
+    router: null,
   }),
 
   actions: {
+
+    setRouter(routerInstance) {
+      this.router = routerInstance;
+    },
+
     async login(payload) {
       try {
         const { data } = await api.post("/users/login", {
           email: payload.email,
           password: payload.password,
         });
+
+        // Response received will be 
+        // json
+        // {
+        //   "message": "Login successful",
+        //   "user": {
+        //     "id": "user_id",
+        //     "name": "John Doe",
+        //     "email": "johndoe@example.com",
+        //     "role": "buyer"
+        //   },
+        //   "token": "jwt_token"
+        // }
+
         this.user = data.user;
         this.token = data.token;
+
+        localStorage.setItem("user", data.user);
         localStorage.setItem("token", data.token);
+
         alert("Login Successful!");
-        useRouter().push("/products");
+
+        if (this.router) {
+          this.router.push("/products");  // Now router is available globally
+        } else {
+          console.error("Router is not initialized!");
+        }
       } catch (error) {
         console.error("Login error:", error);
         alert("Invalid credentials!");
@@ -33,11 +61,20 @@ export const useAuthStore = defineStore("auth", {
           email: payload.email,
           password: payload.password,
         });
+
         this.user = data.user;
         this.token = data.token;
+
         localStorage.setItem("token", data.token);
         alert("Account Created!");
-        useRouter().push("/products");
+
+
+        if (this.router) {
+          this.router.push("/login");  // Redirect user to login page
+        } else {
+          console.error("Router is not initialized!");
+        }
+
       } catch (error) {
         console.error("Registration error:", error);
         alert("Failed to register!");
@@ -47,8 +84,14 @@ export const useAuthStore = defineStore("auth", {
     logout() {
       this.user = null;
       this.token = null;
+      localStorage.removeItem("user");
       localStorage.removeItem("token");
-      useRouter().push("/");
+
+      if (this.router) {
+        this.router.push("/");
+      } else {
+        console.error("Router is not initialized!");
+      }
     },
   },
 });

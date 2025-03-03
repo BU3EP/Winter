@@ -31,12 +31,19 @@
   </template>
   
   <script setup>
-  import { ref } from "vue";
+  import { ref, onMounted } from "vue";
+  import { useRouter } from "vue-router";
   import { useAuthStore } from "@/stores/authStore";
   import Navbar from "@/components/Navbar.vue";  // Import Navbar
   import Footer from "@/components/Footer.vue";  // Import Footer
   
   const authStore = useAuthStore();
+  const router = useRouter();
+
+  onMounted(() => {
+    authStore.setRouter(router);
+  });
+
   const isLogin = ref(true);
   const form = ref({
     email: "",
